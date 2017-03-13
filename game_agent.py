@@ -172,25 +172,22 @@ class CustomPlayer:
         if self.time_left() < self.TIMER_THRESHOLD:
             raise Timeout()
 
-        if depth == 0:
-            return self.score(game, self)
+        moves = game.get_legal_moves(self) if maximizing_player else game.get_legal_moves(game.get_opponent(self))
+        # If we've reached a leaf node OR there are no legal moves, evaluate & return
+        if depth == 0 or len(moves) == 0: 
+            return self.score(game, self), (-1, -1)
 
-        moves = game.get_legal_moves(self)
-
-        if(len(moves) == 0): # if there are no legal moves, return
-            return self.score, (-1,-1)
-
-        result = () # tuple point, move
+        result = ()
+        # Iterate through all the legal moves and calculate the backpropagated utility for each new game state
         for move in moves:
-            print("moves", move)
-            new_state = game.forecast_move(move)
-            new_state_points = self.minimax(new_state, depth-1, not maximizing_player)
+            new_state = game.forecast_move(move)    # create new game state by playing the legal move
+            points, _ = self.minimax(new_state, depth-1, not maximizing_player) # recusively call minimax while decrementing the depth and fliping the maxmizing_player flag
             
-            # print('gg, ', new_state_points)
-            if len(result) == 0 or new_state_points > result[0]:
-                result = (new_state_points, new_state)
+            # Update the result tuple to maximize point and keep the move that maximizes the points
+            if len(result) == 0 or points > result[0]:
+                result = (points, move)
 
-        return result[0], result[1]
+        return result
 
     def alphabeta(self, game, depth, alpha=float("-inf"), beta=float("inf"), maximizing_player=True):
         """Implement minimax search with alpha-beta pruning as described in the
