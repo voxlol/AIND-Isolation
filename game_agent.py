@@ -172,6 +172,7 @@ class CustomPlayer:
         if self.time_left() < self.TIMER_THRESHOLD:
             raise Timeout()
 
+        # Get the current player's legal moves
         moves = game.get_legal_moves(self) if maximizing_player else game.get_legal_moves(game.get_opponent(self))
         # If we've reached a leaf node OR there are no legal moves, evaluate & return
         if depth == 0 or len(moves) == 0: 
