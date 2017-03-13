@@ -231,5 +231,43 @@ class CustomPlayer:
         if self.time_left() < self.TIMER_THRESHOLD:
             raise Timeout()
 
-        # TODO: finish this function!
-        raise NotImplementedError
+        # If leaf node, return score and move
+        if depth == 0:
+            return self.score(game, self), (-1, -1)
+
+        # Get current legal moves for current player
+        moves = game.get_legal_moves(game.active_player)
+        best_move = ()
+
+        # Loop through all moves 
+        for move in moves:
+            # Exit this branch of search if we've already hit the alpha/beta bound
+            if len(best_move) > 0:
+                is_max_and_at_upper_bound = maximizing_player and best_move[0] >= beta
+                is_min_and_at_lower_bound = not maximizing_player and best_move[0] <= alpha
+                if is_max_and_at_upper_bound or is_min_and_at_lower_bound:
+                    return best_move
+
+            # Recursively search the next move
+            new_game_state = game.forecast_move(move)
+            move_points, _ = self.alphabeta(
+                new_game_state,
+                depth-1,
+                alpha,
+                beta,
+                not maximizing_player)
+
+            # Update running best_move
+            if len(best_move) > 0:
+                is_max_and_higher = maximizing_player and move_points > best_move[0]
+                is_min_and_lower = not maximizing_player and move_points < best_move[0]
+            if len(best_move) == 0 or is_max_and_higher or is_min_and_lower:
+                best_move = (move_points, move)
+          
+            # Update alpha/beta
+            if maximizing_player:
+                alpha = best_move[0]
+            else:
+                beta = best_move[0]
+
+        return best_move
