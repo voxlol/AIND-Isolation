@@ -118,25 +118,35 @@ class CustomPlayer:
 
         self.time_left = time_left
 
-        # TODO: finish this function!
-
         # Perform any required initializations, including selecting an initial
         # move from the game board (i.e., an opening book), or returning
         # immediately if there are no legal moves
 
+        if len(legal_moves) == 0 or legal_moves == []:
+            return (-1, -1)
+
+        # Play center move if possible
+        # center_move = (game.height // 2, game.width // 2)
+        # if center_move in legal_moves:
+            # return center_move
+
+        # rotation hash
+            # flip 90 degrees 4 times  
+            # flip diagonally
+
+        move = legal_moves[0]
+
         try:
-            # The search method call (alpha beta or minimax) should happen in
-            # here in order to avoid timeout. The try/except block will
-            # automatically catch the exception raised by the search method
-            # when the timer gets close to expiring
-            pass
-
+            max_depth = game.width * game.height if self.iterative else self.search_depth
+            for current_depth in range(1, max_depth + 1):
+                if self.method == 'alphabeta':
+                    points, move = self.alphabeta(game, current_depth)
+                else:
+                    points, move = self.minimax(game, current_depth)
         except Timeout:
-            # Handle any actions required at timeout, if necessary
             pass
-
-        # Return the best move from the last completed search iteration
-        raise NotImplementedError
+            
+        return move
 
     def minimax(self, game, depth, maximizing_player=True):
         """Implement the minimax search algorithm as described in the lectures.
@@ -172,11 +182,15 @@ class CustomPlayer:
         if self.time_left() < self.TIMER_THRESHOLD:
             raise Timeout()
 
-        # Get the current player's legal moves
-        moves = game.get_legal_moves(self) if maximizing_player else game.get_legal_moves(game.get_opponent(self))
+        current_score = self.score(game, self)
+        moves = game.get_legal_moves(game.active_player)
+
+        # terminate if game is over
+        if game.is_winner(self) or game.is_loser(self) or depth == 0:
+            return (current_score, game.get_player_location(self))
         # If we've reached a leaf node OR there are no legal moves, evaluate & return
-        if depth == 0 or len(moves) == 0: 
-            return self.score(game, self), (-1, -1)
+        if len(moves) == 0:
+            return current_score, (-1, -1)
 
         result = ()
         # Iterate through all the legal moves and calculate the backpropagated utility for each new game state
@@ -185,7 +199,11 @@ class CustomPlayer:
             points, _ = self.minimax(new_state, depth-1, not maximizing_player) # recusively call minimax while decrementing the depth and fliping the maxmizing_player flag
             
             # Update the result tuple to maximize point and keep the move that maximizes the points
-            if len(result) == 0 or points > result[0]:
+            if len(result) == 0:
+                result = (points, move)
+            elif maximizing_player and points > result[0]:
+                result = (points, move)
+            elif not maximizing_player and points < result[0]:
                 result = (points, move)
 
         return result
