@@ -254,6 +254,10 @@ class CustomPlayer:
 
         # Get current legal moves for current player
         moves = game.get_legal_moves(game.active_player)
+
+        if len(moves) == 0:
+            return self.score(game, self), (-1, -1) 
+
         best_move = ()
 
         # Loop through all moves 
