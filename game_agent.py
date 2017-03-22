@@ -13,6 +13,27 @@ class Timeout(Exception):
     """Subclass base exception for code clarity."""
     pass
 
+def aggressive_heuristic(game, player):
+    opponent = game.get_opponent(player)
+    player_moves = len(game.get_legal_moves(player))
+    opponent_moves = len(game.get_legal_moves(opponent))
+
+    return float(player_moves - opponent_moves**2)
+
+def open_spaces_heuristic(game, player):
+    opponent = game.get_opponent(player)
+    player_moves = len(game.get_legal_moves(player))
+    opponent_moves = len(game.get_legal_moves(opponent))
+    blank_spaces = len(game.get_blank_spaces())
+
+    return float((player_moves - opponent_moves) / blank_spaces)
+
+def square_player_heuristic(game, player):
+    opponent = game.get_opponent(player)
+    player_moves = len(game.get_legal_moves(player))
+    opponent_moves = len(game.get_legal_moves(opponent))
+
+    return float(player_moves**2 - opponent_moves)
 
 def custom_score(game, player):
     """Calculate the heuristic value of a game state from the point of view
@@ -37,8 +58,40 @@ def custom_score(game, player):
         The heuristic value of the current game state to the specified player.
     """
     opponent = game.get_opponent(player)
+    player_moves = len(game.get_legal_moves(player))
+    opponent_moves = len(game.get_legal_moves(opponent))
+    
+    blank_spaces = len(game.get_blank_spaces())
+    total_possible_moves = game.width * game.height
+    played_moves = total_possible_moves - blank_spaces
 
-    return float(len(game.get_legal_moves(player)) - len(game.get_legal_moves(opponent)))
+    return float(player_moves - 1.5*opponent_moves)
+
+def game_completion_weight_heuristic(game, player):
+    opponent = game.get_opponent(player)
+    player_moves = len(game.get_legal_moves(player))
+    opponent_moves = len(game.get_legal_moves(opponent))
+    
+    blank_spaces = len(game.get_blank_spaces())
+    total_possible_moves = game.width * game.height
+    played_moves = total_possible_moves - blank_spaces
+
+    percentage_game_completed = played_moves / total_possible_moves
+
+    normalized_coef = percentage_game_completed * 2
+
+    return float(player_moves - normalized_coef*opponent_moves) 
+
+def moderately_aggressive_heuristic(game, player):
+    opponent = game.get_opponent(player)
+    player_moves = len(game.get_legal_moves(player))
+    opponent_moves = len(game.get_legal_moves(opponent))
+    
+    blank_spaces = len(game.get_blank_spaces())
+    total_possible_moves = game.width * game.height
+    played_moves = total_possible_moves - blank_spaces
+
+    return float(player_moves - 1.5*opponent_moves)
 
 class CustomPlayer:
     """Game-playing agent that chooses a move using your evaluation function
